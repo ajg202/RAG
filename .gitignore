@@ -4,3 +4,12 @@ __pycache__/
 .env
 data/
 .pytest_cache/
+
+# Eggs
+*.egg
+*.egg-info/
+.eggs/
+
+# Build and packaging artifacts
+build/
+dist/
