@@ -20,11 +20,14 @@ def split_sections(pages: list[Page]):
         buf: list[str] = []
         for line in page.text.splitlines():
             m = HEADING_RE.match(line)
+            title = m.group(1).replace("*", "").strip() if m else ""
+            if m and not title:
+                continue  # empty heading line, drop it
             if m:
                 if "".join(buf).strip():
                     yield page.page_number, heading, "\n".join(buf).strip()
                 buf = []
-                heading = m.group(1).strip()
+                heading = title
             buf.append(line)
         if "".join(buf).strip():
             yield page.page_number, heading, "\n".join(buf).strip()
@@ -53,13 +56,25 @@ def split_by_size(text: str, max_chars: int, overlap: int) -> list[str]:
         start = max(end - overlap, start + 1)
     return pieces
 
+#merges small chunks into larger ones, up to max_chars, but not smaller than min_chars
+def merge_small(chunks: list[Chunk], min_chars: int = 300, max_chars: int = 2000) -> list[Chunk]:
+    merged: list[Chunk] = []
+    for c in chunks:
+        prev = merged[-1] if merged else None
+        if prev and len(prev.text) < min_chars and len(prev.text) + len(c.text) + 2 <= max_chars:
+            merged[-1] = Chunk(prev.text + "\n\n" + c.text, prev.page_number, prev.heading)
+        else:
+            merged.append(c)
+    return merged
+
 #chunks the pages into pieces of at most max_chars, with overlap between pieces
 def chunk_pages(pages: list[Page], max_chars: int = 2000, overlap: int = 200) -> list[Chunk]:
     chunks = []
     for page_number, heading, text in split_sections(pages):
         for piece in split_by_size(text, max_chars, overlap):
+            piece = re.sub(r"\n{3,}", "\n\n", piece)
             chunks.append(Chunk(text=piece, page_number=page_number, heading=heading))
-    return chunks
+    return merge_small(chunks, max_chars=max_chars)
 
 #runs the chunker on a PDF file and prints the results to stdout
 if __name__ == "__main__":
