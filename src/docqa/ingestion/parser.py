@@ -31,7 +31,7 @@ def clean_text(text: str) -> str:
     return text.strip()
 
 #runs the parser on a PDF file and prints the results to stdout
-if __name__ == "__main__":
-    import sys
-    for p in parse_pdf(sys.argv[1]):
-        print(f"--- page {p.page_number} ---\n{p.text}")
+# if __name__ == "__main__":
+#     import sys
+#     for p in parse_pdf(sys.argv[1]):
+#         print(f"--- page {p.page_number} ---\n{p.text}")

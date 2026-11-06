@@ -77,10 +77,10 @@ def chunk_pages(pages: list[Page], max_chars: int = 2000, overlap: int = 200) ->
     return merge_small(chunks, max_chars=max_chars)
 
 #runs the chunker on a PDF file and prints the results to stdout
-if __name__ == "__main__":
-    import sys
-    from docqa.ingestion.parser import parse_pdf
+# if __name__ == "__main__":
+#     import sys
+#     from docqa.ingestion.parser import parse_pdf
 
-    for i, c in enumerate(chunk_pages(parse_pdf(sys.argv[1]))):
-        print(f"=== chunk {i} | page {c.page_number} | {c.heading!r} | {len(c.text)} chars ===")
-        print(c.text, "\n")
+#     for i, c in enumerate(chunk_pages(parse_pdf(sys.argv[1]))):
+#         print(f"=== chunk {i} | page {c.page_number} | {c.heading!r} | {len(c.text)} chars ===")
+#         print(c.text, "\n")
