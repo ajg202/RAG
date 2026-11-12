@@ -13,10 +13,22 @@ class Page:
     page_number: int    #1-based, page numbers for reference
     text: str           #text for the page
 
-#parses the pdf into its respective sections
+#decides whether OCR is needed: True if the PDF has a real text layer. Scanned (image-only) PDFs have almost no extractable text, so they return False.
+def _has_text_layer(path: str | Path) -> bool:
+    import pymupdf
+
+    with pymupdf.open(str(path)) as doc:
+        total = sum(len(page.get_text().strip()) for page in doc)
+        return total >= 50 * max(len(doc), 1)
+
+#parse_pdf uses the pymupdf4llm library to parse a PDF file into a list of Page objects. It checks if the PDF has a text layer and uses OCR if necessary. The text is cleaned to remove trailing page numbers and underlines.
 def parse_pdf(path: str | Path) -> list[Page]:
     pymupdf4llm = import_module("pymupdf4llm")
-    chunks = pymupdf4llm.to_markdown(str(path), page_chunks=True)
+    chunks = pymupdf4llm.to_markdown(
+        str(path),
+        page_chunks=True,
+        use_ocr=not _has_text_layer(path),
+    )
     return [Page(page_number=i, text=clean_text(c["text"])) for i, c in enumerate(chunks, start=1)]
 
 #cleans the text of a page, removing trailing page numbers and underlines
