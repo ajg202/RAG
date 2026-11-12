@@ -10,7 +10,7 @@ requires-python = ">=3.10"
 dependencies = [
     "pymupdf4llm>=2.0",
     "chromadb",
-    # "anthropic",
+    "anthropic",
     "python-dotenv",
 ]
 
