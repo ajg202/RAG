@@ -12,6 +12,7 @@ dependencies = [
     "chromadb",
     "anthropic",
     "python-dotenv",
+    "sentence-transformers",
 ]
 
 [project.optional-dependencies]

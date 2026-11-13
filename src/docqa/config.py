@@ -20,13 +20,15 @@ def _path(env_name: str, default: str) -> Path:
 class Settings:
     anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY", "")
     claude_model: str = os.getenv("CLAUDE_MODEL", "claude-sonnet-5-5")
-    embedding_provider: str = os.getenv("EMBEDDING_PROVIDER", "local")
+    embedding_provider: str = os.getenv("EMBEDDING_PROVIDER", "qwen3")
     voyage_api_key: str = os.getenv("VOYAGE_API_KEY", "")
     chunk_max_chars: int = int(os.getenv("CHUNK_MAX_CHARS", "2000"))
     chunk_overlap: int = int(os.getenv("CHUNK_OVERLAP", "200"))
     top_k: int = int(os.getenv("TOP_K", "6"))
     upload_dir: Path = _path("UPLOAD_DIR", "data/uploads")
     chroma_dir: Path = _path("CHROMA_DIR", "data/chroma")
+    embedding_model: str = os.getenv("EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B")
+    embedding_device: str = os.getenv("EMBEDDING_DEVICE", "cuda")  # auto, cuda or cpu
 
 
 settings = Settings()
