@@ -13,6 +13,7 @@ dependencies = [
     "anthropic",
     "python-dotenv",
     "sentence-transformers",
+    "requests",
 ]
 
 [project.optional-dependencies]

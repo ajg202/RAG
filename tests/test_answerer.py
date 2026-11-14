@@ -146,6 +146,20 @@ def test_get_answerer_without_key_raises_clear_error(monkeypatch):
         get_answerer()
 
 
+def test_get_answerer_without_key_raises_clear_error(monkeypatch):
+    monkeypatch.setattr(
+        answerer_module, "settings",
+        replace(settings, generation_provider="anthropic", anthropic_api_key=""),
+    )
+    with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
+        get_answerer()
+
+
+def test_unknown_generation_provider_raises(monkeypatch):
+    monkeypatch.setattr(answerer_module, "settings", replace(settings, generation_provider="nope"))
+    with pytest.raises(ValueError, match="GENERATION_PROVIDER"):
+        get_answerer()
+
 # ---- Live test: real API, tiny cost, skipped when no key is configured --------
 
 @pytest.mark.skipif(not settings.anthropic_api_key, reason="ANTHROPIC_API_KEY not set")

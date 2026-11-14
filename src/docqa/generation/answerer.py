@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 
 import anthropic
 
+from docqa.generation.ollama_client import OllamaClient
+
 from docqa.config import settings
 from docqa.generation.prompts import SYSTEM_PROMPT, build_user_message
 from docqa.retrieval.retriever import get_retriever
@@ -77,16 +79,23 @@ class Answerer:
             truncated=response.stop_reason == "max_tokens",
         )
 
-#get_answerer constructs an Answerer instance using the configured retriever and the Anthropic API client. It checks for the presence of the API key and raises an error if it is not set, ensuring that the Answerer can function properly.
+#get_answerer constructs an Answerer instance based on the configured backend (Ollama or Anthropic). It initializes the appropriate API client and retrieves the retriever for document retrieval, returning a fully configured Answerer ready to answer questions.
 def get_answerer() -> Answerer:
-    """Build an answerer from the configured retriever and your API key."""
-    if not settings.anthropic_api_key:
-        raise RuntimeError(
-            "ANTHROPIC_API_KEY is not set. Copy .env.example to .env and add your key."
-        )
-    #check the key first: building the retriever loads the embedding model.
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-    return Answerer(get_retriever(), client)
+    provider = settings.generation_provider
+    if provider == "ollama":
+        client, model = OllamaClient(), settings.ollama_model
+    elif provider == "anthropic":
+        if not settings.anthropic_api_key:
+            raise RuntimeError(
+                "ANTHROPIC_API_KEY is not set. Copy .env.example to .env and add your key."
+            )
+        import anthropic
+
+        client, model = anthropic.Anthropic(api_key=settings.anthropic_api_key), settings.claude_model
+    else:
+        raise ValueError(f"Unknown GENERATION_PROVIDER: {provider!r}")
+    #backend is validated first: building the retriever loads the embedding model
+    return Answerer(get_retriever(), client, model=model)
 
 #_main_ block allows the script to be run from the command line. It takes a question as input, uses the Answerer to generate an answer, and prints the answer along with any cited sources. If the answer is truncated due to token limits, it notifies the user.
 if __name__ == "__main__":
