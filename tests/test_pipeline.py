@@ -242,3 +242,26 @@ def test_real_pdf_end_to_end(env):
     top = Retriever(embedder, store).retrieve("radiation", top_k=1)[0]
     assert "radiation" in top.text.lower()
     assert top.page_number == 2
+
+
+## Regression tests for specific bugs ---------------------------------------
+
+
+def test_source_override_is_used_for_name_and_result(env):
+    _, store, tmp_path = env
+    pipe, _ = make_pipeline(env)
+    result = pipe.ingest(write_pdf(tmp_path, "upload.pdf"), source="Quarterly report.pdf")
+    assert result.source == "Quarterly report.pdf"
+    assert store.list_documents()[0]["source"] == "Quarterly report.pdf"
+
+
+def test_parser_crash_becomes_value_error(env):
+    embedder, store, tmp_path = env
+
+    def broken(path):
+        raise RuntimeError("corrupt xref table")
+
+    pipe = IngestionPipeline(embedder, store, parse=broken, upload_dir=tmp_path / "uploads")
+    with pytest.raises(ValueError, match="Could not read"):
+        pipe.ingest(write_pdf(tmp_path, "bad.pdf"))
+    assert store.count() == 0

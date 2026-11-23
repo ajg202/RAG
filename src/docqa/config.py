@@ -35,6 +35,7 @@ class Settings:
     ollama_num_ctx: int = int(os.getenv("OLLAMA_NUM_CTX", "8192"))
     ollama_temperature: float = float(os.getenv("OLLAMA_TEMPERATURE", "0.2"))
     ollama_think: str = os.getenv("OLLAMA_THINK", "false")  #"", "true" or "false" -> true takes up too much time and memory, false is faster but less accurate, "" uses the default behavior of the model
+    max_upload_mb: int = int(os.getenv("MAX_UPLOAD_MB", "50"))
 
 
 settings = Settings()

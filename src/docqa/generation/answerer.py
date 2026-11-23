@@ -79,22 +79,25 @@ class Answerer:
             truncated=response.stop_reason == "max_tokens",
         )
 
-#get_answerer constructs an Answerer instance based on the configured backend (Ollama or Anthropic). It initializes the appropriate API client and retrieves the retriever for document retrieval, returning a fully configured Answerer ready to answer questions.
-def get_answerer(device: str | None = None) -> Answerer:
+#get_generation_client returns a tuple containing the API client and model name for the configured generation provider. It supports "ollama" and "anthropic" providers, raising an error for unknown configurations or missing API keys.
+def get_generation_client() -> tuple[object, str]:
+    """Return (client, model) for the configured backend."""
     provider = settings.generation_provider
     if provider == "ollama":
-        client, model = OllamaClient(), settings.ollama_model
-    elif provider == "anthropic":
+        return OllamaClient(), settings.ollama_model
+    if provider == "anthropic":
         if not settings.anthropic_api_key:
             raise RuntimeError(
                 "ANTHROPIC_API_KEY is not set. Copy .env.example to .env and add your key."
             )
         import anthropic
 
-        client, model = anthropic.Anthropic(api_key=settings.anthropic_api_key), settings.claude_model
-    else:
-        raise ValueError(f"Unknown GENERATION_PROVIDER: {provider!r}")
-    #backend is validated first: building the retriever loads the embedding model
+        return anthropic.Anthropic(api_key=settings.anthropic_api_key), settings.claude_model
+    raise ValueError(f"Unknown GENERATION_PROVIDER: {provider!r}")
+
+#get_answerer returns an instance of the Answerer class, configured with the appropriate retriever and generation client based on the settings. It validates the generation client before creating the Answerer.
+def get_answerer(device: str | None = None) -> Answerer:
+    client, model = get_generation_client()  #validated first: building the retriever loads a model
     return Answerer(get_retriever(device), client, model=model)
 
 #_main_ block allows the script to be run from the command line. It takes a question as input, uses the Answerer to generate an answer, and prints the answer along with any cited sources. If the answer is truncated due to token limits, it notifies the user.

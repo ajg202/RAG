@@ -53,33 +53,38 @@ class IngestionPipeline:
         self._overlap = settings.chunk_overlap if overlap is None else overlap
 
     #ingest takes a PDF file path and processes it through the ingestion pipeline. It checks if the file is a valid PDF, computes a unique document ID, and determines if the document has already been ingested. If the document is new or if force ingestion is requested, it parses the PDF into pages, chunks the text, embeds the chunks, and stores them in the vector store. The method returns an IngestResult indicating whether the document was ingested, replaced, or unchanged.
-    def ingest(self, path: Path | str, force: bool = False) -> IngestResult:
-        """Parse, chunk, embed and store one PDF.
-
-        An already-stored file is skipped (OCR and embedding are slow) unless
-        force=True, which you need after changing chunk settings.
-        """
+    def ingest(self, path: Path | str, force: bool = False, source: str | None = None) -> IngestResult:
         path = Path(path)
+        source = source or path.name
         if not path.is_file():
             raise FileNotFoundError(f"No such file: {path}")
         if not _looks_like_pdf(path):
-            raise ValueError(f"Not a PDF: {path.name}")
+            raise ValueError(f"Not a PDF: {source}")
 
         doc_id = compute_doc_id(path)
         existing = self._store.count([doc_id])
         if existing and not force:
-            return IngestResult(doc_id, path.name, existing, None, "unchanged")
+            return IngestResult(doc_id, source, existing, None, "unchanged")
 
-        pages = self._parse(path)
+        try:
+            pages = self._parse(path)
+        except Exception as e:  # corrupt or unreadable PDF
+            raise ValueError(f"Could not read {source}: {e}") from e
         chunks = chunk_pages(pages, max_chars=self._max_chars, overlap=self._overlap)
         if not chunks:
-            raise ValueError(f"No text could be extracted from {path.name}")
+            raise ValueError(f"No text could be extracted from {source}")
 
-        # Embed first and touch the store last, so a failure here
-        # never leaves a half-written or deleted document behind.
         vectors = self._embed([c.text for c in chunks])
-        self._store.add_document(doc_id, chunks, vectors, source=path.name)
+        self._store.add_document(doc_id, chunks, vectors, source=source)
         self._save_copy(path, doc_id)
+
+        return IngestResult(
+            doc_id=doc_id,
+            source=source,
+            chunks=len(chunks),
+            pages=len(pages),
+            status="replaced" if existing else "ingested",
+        )
 
         return IngestResult(
             doc_id=doc_id,
