@@ -104,9 +104,8 @@ class IngestionPipeline:
             shutil.copyfile(path, dest)
 
 #get_pipeline builds an ingestion pipeline using the configured embedder and the default vector store. It returns an instance of IngestionPipeline that can be used to ingest PDF documents into the system.
-def get_pipeline() -> IngestionPipeline:
-    """Build a pipeline from the configured embedder and the default database."""
-    embedder = get_embedder()
+def get_pipeline(device: str | None = None) -> IngestionPipeline:
+    embedder = get_embedder(device)
     return IngestionPipeline(embedder, VectorStore(embedder.name))
 
 #__main__ block allows the script to be run from the command line. It parses command-line arguments for a PDF file and optional questions, ingests the PDF using the ingestion pipeline, and then retrieves and prints the most relevant chunks for each question using the retriever. This provides a simple interface for testing the ingestion and retrieval functionality directly from the command line.

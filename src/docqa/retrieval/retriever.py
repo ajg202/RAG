@@ -28,6 +28,6 @@ class Retriever:
         return results
 
 #get_retriever builds a retriever from the configured embedder and the default database.
-def get_retriever() -> Retriever:
-    embedder = get_embedder()
+def get_retriever(device: str | None = None) -> Retriever:
+    embedder = get_embedder(device)
     return Retriever(embedder, VectorStore(embedder.name))

@@ -80,7 +80,7 @@ class Answerer:
         )
 
 #get_answerer constructs an Answerer instance based on the configured backend (Ollama or Anthropic). It initializes the appropriate API client and retrieves the retriever for document retrieval, returning a fully configured Answerer ready to answer questions.
-def get_answerer() -> Answerer:
+def get_answerer(device: str | None = None) -> Answerer:
     provider = settings.generation_provider
     if provider == "ollama":
         client, model = OllamaClient(), settings.ollama_model
@@ -95,7 +95,7 @@ def get_answerer() -> Answerer:
     else:
         raise ValueError(f"Unknown GENERATION_PROVIDER: {provider!r}")
     #backend is validated first: building the retriever loads the embedding model
-    return Answerer(get_retriever(), client, model=model)
+    return Answerer(get_retriever(device), client, model=model)
 
 #_main_ block allows the script to be run from the command line. It takes a question as input, uses the Answerer to generate an answer, and prints the answer along with any cited sources. If the answer is truncated due to token limits, it notifies the user.
 if __name__ == "__main__":

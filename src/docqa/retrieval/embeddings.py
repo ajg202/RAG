@@ -80,6 +80,14 @@ def get_embedder() -> Embedder:
         return LocalEmbedder()
     raise ValueError(f"Unknown EMBEDDING_PROVIDER: {settings.embedding_provider!r}")
 
+def get_embedder_name() -> str:
+    """The embedder's name without loading its model. It picks the vector collection."""
+    names = {"qwen3": Qwen3Embedder.name, "local": LocalEmbedder.name}
+    try:
+        return names[settings.embedding_provider]
+    except KeyError:
+        raise ValueError(f"Unknown EMBEDDING_PROVIDER: {settings.embedding_provider!r}") from None
+
 #initial test code to run the embedder from the command line
 # if __name__ == "__main__":
 #     import sys
