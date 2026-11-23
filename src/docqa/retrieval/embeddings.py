@@ -34,11 +34,11 @@ class LocalEmbedder:
 class Qwen3Embedder:
     name = "qwen3-embedding-0.6b"
 
-    def __init__(self, batch_size: int = 16, max_seq_length: int = 1024) -> None:
+    def __init__(self, batch_size: int = 16, max_seq_length: int = 1024, device: str | None = None) -> None:
         import torch
         from sentence_transformers import SentenceTransformer
 
-        device = settings.embedding_device
+        device = device or settings.embedding_device
         if device == "auto":
             device = "cuda" if torch.cuda.is_available() else "cpu"
             if device == "cpu":
@@ -73,7 +73,7 @@ class Qwen3Embedder:
         return self._encode([text], prompt=f"Instruct: {QUERY_TASK}\nQuery:")[0]
 
 #get_embedder returns an instance of the configured embedding provider based on the settings. It supports "qwen3" and "local" providers, raising an error for unknown configurations.
-def get_embedder() -> Embedder:
+def get_embedder(device: str | None = None) -> Embedder:
     if settings.embedding_provider == "qwen3":
         return Qwen3Embedder()
     if settings.embedding_provider == "local":

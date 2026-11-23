@@ -57,12 +57,12 @@ def split_by_size(text: str, max_chars: int, overlap: int) -> list[str]:
     return pieces
 
 #merges small chunks into larger ones, up to max_chars, but not smaller than min_chars
-def merge_small(chunks: list[Chunk], min_chars: int = 300, max_chars: int = 2000) -> list[Chunk]:
+def merge_small(chunks: list[Chunk], min_chars: int = 100, max_chars: int = 2000) -> list[Chunk]:
     merged: list[Chunk] = []
     for c in chunks:
         prev = merged[-1] if merged else None
         if prev and len(prev.text) < min_chars and len(prev.text) + len(c.text) + 2 <= max_chars:
-            merged[-1] = Chunk(prev.text + "\n\n" + c.text, prev.page_number, prev.heading)
+            merged[-1] = Chunk(prev.text + "\n\n" + c.text, c.page_number, c.heading)
         else:
             merged.append(c)
     return merged
