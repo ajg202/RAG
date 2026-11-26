@@ -14,10 +14,14 @@ dependencies = [
     "python-dotenv",
     "sentence-transformers",
     "requests",
+    "fastapi"
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = [
+"pytest",
+"python-multipart"
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
